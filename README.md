@@ -12,9 +12,10 @@ Designed for C-suite executive presentation (CEO/CFO), this application delivers
 
 ---
 
+
 ## 📸 Dashboard Preview
 
-Dashboard : https://github.com/dkumr0179-web/Discount-Loyalty-Analysis/blob/e2e5a65a81606bb086a94b2aac151d3545ae4b82/Discount%20and%20Loyalty%20.png
+![Sales & Margin Analytics Executive Dashboard](https://raw.githubusercontent.com/dkumr0179-web/Discount-Loyalty-Analysis/e2e5a65a81606bb086a94b2aac151d3545ae4b82/Discount%20and%20Loyalty%20.png)
 
 ---
 
