@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Discount & Loyalty Impact Dashboard</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --navy-primary: #1a2744;
+            --navy-surface: #243456;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            
+            /* Status Accents */
+            --teal-success: #0d9488;
+            --teal-bg: #ccfbf1;
+            --amber-watch: #d97706;
+            --amber-bg: #fef3c7;
+            --red-warning: #dc2626;
+            --red-bg: #fee2e2;
+            --blue-baseline: #2563eb;
+            --blue-bg: #dbeafe;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding-bottom: 40px;
+            line-height: 1.4;
+        }
+
+        /* Top Header */
+        header {
+            background-color: var(--navy-primary);
+            color: #ffffff;
+            padding: 20px 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header-title p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .header-badge {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        /* Container Layout */
+        .main-wrapper {
+            max-width: 1600px;
+            margin: 24px auto;
+            padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Section 1: KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 200ms ease, box-shadow 200ms ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+
+        .kpi-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 8px 0 4px 0;
+            color: var(--navy-primary);
+        }
+
+        .kpi-subtext {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .kpi-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        /* Section 2: Sticky Filter Panel */
+        .sticky-filters {
+            position: sticky;
+            top: 12px;
+            z-index: 100;
+            background: var(--navy-primary);
+            border-radius: 8px;
+            padding: 16px 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .filter-control {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-control label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .filter-control select {
+            background-color: var(--navy-surface);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            transition: all 200ms ease;
+            min-width: 140px;
+        }
+
+        .filter-control select:hover, .filter-control select:focus {
+            border-color: #38bdf8;
+            background-color: #2a3d66;
+        }
+
+        .btn-reset {
+            background: #dc2626;
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 200ms ease;
+            align-self: flex-end;
+        }
+
+        .btn-reset:hover {
+            background: #b91c1c;
+        }
+
+        /* Main Workspace: Grid + Dynamic Sidebar */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 24px;
+        }
+
+        .analytics-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 200ms ease, box-shadow 200ms ease;
+        }
+
+        .chart-card:hover {
+            box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+        }
+
+        .chart-card.full-width {
+            grid-column: span 2;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .chart-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--navy-primary);
+        }
+
+        .chart-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 280px;
+        }
+
+        .chart-wrapper.tall {
+            height: 340px;
+        }
+
+        /* Section 4: Dynamic Executive Insights Sidebar */
+        .insights-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .insights-header {
+            background: var(--navy-primary);
+            color: #ffffff;
+            padding: 16px 20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .insight-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--blue-baseline);
+            border-radius: 6px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 200ms ease;
+        }
+
+        .insight-card.success { border-left-color: var(--teal-success); background: #f0fdf4; }
+        .insight-card.warning { border-left-color: var(--amber-watch); background: #fffbeb; }
+        .insight-card.danger { border-left-color: var(--red-warning); background: #fef2f2; }
+        .insight-card.info { border-left-color: var(--blue-baseline); background: #eff6ff; }
+
+        .insight-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .insight-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--navy-primary);
+        }
+
+        .insight-tag {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .insight-tag.success { background: var(--teal-bg); color: var(--teal-success); }
+        .insight-tag.warning { background: var(--amber-bg); color: var(--amber-watch); }
+        .insight-tag.danger { background: var(--red-bg); color: var(--red-warning); }
+        .insight-tag.info { background: var(--blue-bg); color: var(--blue-baseline); }
+
+        .insight-body {
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.4;
+        }
+
+        .insight-highlight {
+            font-weight: 700;
+            color: var(--navy-primary);
+        }
+
+        /* Embedded Table Styling */
+        .shipping-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 11px;
+        }
+
+        .shipping-table th {
+            background: #f1f5f9;
+            text-align: left;
+            padding: 6px 8px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .shipping-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        /* Responsive Layout Adjustments */
+        @media (max-width: 1300px) {
+            .workspace-grid { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .analytics-container { grid-template-columns: 1fr; }
+            .chart-card.full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Bar -->
+    <header>
+        <div class="header-container">
+            <div class="header-title">
+                <h1>Executive Discount & Loyalty Impact Analysis</h1>
+                <p>Boardroom Visual Analytics & Margin Protection Suite</p>
+            </div>
+            <div class="header-badge">
+                LIVE INTERACTIVE
+            </div>
+        </div>
+    </header>
+
+    <div class="main-wrapper">
+
+        <!-- SECTION 2: Global Sticky Filter Panel -->
+        <div class="sticky-filters">
+            <div class="filter-group-container">
+                <div class="filter-control">
+                    <label for="filter-year">Year</label>
+                    <select id="filter-year" onchange="handleFilterChange()">
+                        <option value="All">All Years (2018-2021)</option>
+                        <option value="2018">2018</option>
+                        <option value="2019">2019</option>
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                    </select>
+                </div>
+
+                <div class="filter-control">
+                    <label for="filter-region">Region</label>
+                    <select id="filter-region" onchange="handleFilterChange()">
+                        <option value="All">All Regions</option>
+                        <option value="East">East</option>
+                        <option value="West">West</option>
+                        <option value="Central">Central</option>
+                        <option value="South">South</option>
+                    </select>
+                </div>
+
+                <div class="filter-control">
+                    <label for="filter-segment">Customer Segment</label>
+                    <select id="filter-segment" onchange="handleFilterChange()">
+                        <option value="All">All Segments</option>
+                        <option value="Consumer">Consumer</option>
+                        <option value="Corporate">Corporate</option>
+                        <option value="Home Office">Home Office</option>
+                    </select>
+                </div>
+
+                <div class="filter-control">
+                    <label for="filter-category">Product Category</label>
+                    <select id="filter-category" onchange="handleFilterChange()">
+                        <option value="All">All Categories</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Office Supplies">Office Supplies</option>
+                        <option value="Technology">Technology</option>
+                    </select>
+                </div>
+
+                <div class="filter-control">
+                    <label for="filter-shipmode">Ship Mode</label>
+                    <select id="filter-shipmode" onchange="handleFilterChange()">
+                        <option value="All">All Ship Modes</option>
+                        <option value="Standard Class">Standard Class</option>
+                        <option value="Second Class">Second Class</option>
+                        <option value="First Class">First Class</option>
+                        <option value="Same Day">Same Day</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
+        </div>
+
+        <!-- SECTION 1: Top KPI Summary Bar -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Revenue</div>
+                <div class="kpi-value" id="kpi-revenue">$0</div>
+                <div class="kpi-subtext">Gross sales volume</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Total Profit</div>
+                <div class="kpi-value" id="kpi-profit">$0</div>
+                <div class="kpi-subtext">Net earnings bottom-line</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Net Profit Margin</div>
+                <div class="kpi-value" id="kpi-margin">0.0%</div>
+                <div class="kpi-subtext"><span class="kpi-badge" id="kpi-margin-badge">Target: >12%</span></div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Total Orders</div>
+                <div class="kpi-value" id="kpi-orders">0</div>
+                <div class="kpi-subtext">Line item transactions</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Active Customers</div>
+                <div class="kpi-value" id="kpi-customers">0</div>
+                <div class="kpi-subtext">Unique buyer accounts</div>
+            </div>
+        </div>
+
+        <!-- Main Workspace: Charts + Dynamic Insights Sidebar -->
+        <div class="workspace-grid">
+            
+            <!-- SECTION 3: Visual Analytics Grid (11 Visualizations) -->
+            <div class="analytics-container">
+                
+                <!-- Chart 1: Monthly Sales & Profit Trend -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">1. Monthly Sales & Profit Trend</div>
+                            <div class="chart-subtitle">Dual-axis longitudinal analysis of revenue momentum vs net profitability</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper tall">
+                        <canvas id="chart-monthly-trend"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Revenue Share by Category -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">2. Revenue Share by Category</div>
+                            <div class="chart-subtitle">Percentage and absolute dollar mix by primary category</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-category-share"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Profit Margin % by Sub-Category -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">3. Margin % by Sub-Category</div>
+                            <div class="chart-subtitle">Profitability rank: Teal (>15%), Amber (5-15%), Red (<0%)</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-subcat-margin"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Regional Performance -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">4. Regional Revenue & Profit Margin</div>
+                            <div class="chart-subtitle">Bar volume overlaid with profit margin percentage line</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-regional-perf"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 5: Customer Segment Split by Year -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">5. Segment Revenue Split by Year</div>
+                            <div class="chart-subtitle">Annual stacked revenue composition by customer segment</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-segment-split"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 6: Sales vs. Profit Matrix -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">6. Sales vs. Profit Matrix by Sub-Category</div>
+                            <div class="chart-subtitle">Bubble position = Sales/Profit, Bubble Size = Volume Units Sold, Color = Category</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper tall">
+                        <canvas id="chart-bubble-matrix"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 7: Discount Impact Curve -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">7. Discount Impact & Margin Destruction Threshold</div>
+                            <div class="chart-subtitle">Average profit per order across discount depth bands (Reveals profitability cliff)</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-discount-impact"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 8: Top 10 States by Revenue -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">8. Top 10 States by Revenue</div>
+                            <div class="chart-subtitle">Revenue leader ranking with inline net margin stats</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-top-states"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 9: Shipping Mode Impact -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">9. Logistics & Shipping Mode Impact</div>
+                            <div class="chart-subtitle">Volume distribution and efficiency metrics by fulfillment tier</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper" style="height: 180px;">
+                        <canvas id="chart-ship-mode"></canvas>
+                    </div>
+                    <table class="shipping-table" id="table-ship-metrics">
+                        <thead>
+                            <tr>
+                                <th>Ship Mode</th>
+                                <th>Avg Transit</th>
+                                <th>Avg Profit/Order</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamically generated -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Chart 10: Year-over-Year (YoY) Financial Growth -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">10. Year-over-Year (YoY) Growth</div>
+                            <div class="chart-subtitle">Side-by-side annual comparison of Revenue vs. Profit</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-yoy-growth"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 11: Monthly Order Volume Heatmap -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">11. Monthly Order Volume Heatmap</div>
+                            <div class="chart-subtitle">Order volume concentration across calendar months</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-order-heatmap"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 4: Automated Executive Insights Engine Sidebar -->
+            <div class="insights-sidebar">
+                <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+                    <div class="insights-header">
+                        <span>Executive Intelligence</span>
+                        <span style="font-size: 10px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px;">AUTO-GENERATED</span>
+                    </div>
+                    <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+                        
+                        <!-- Dynamic Card 1 -->
+                        <div class="insight-card" id="insight-card-1">
+                            <div class="insight-card-header">
+                                <span class="insight-title">Category Margin Leader</span>
+                                <span class="insight-tag" id="insight-tag-1">INFO</span>
+                            </div>
+                            <div class="insight-body" id="insight-body-1">
+                                Calculating...
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Card 2 -->
+                        <div class="insight-card" id="insight-card-2">
+                            <div class="insight-card-header">
+                                <span class="insight-title">Discount Erosion Warning</span>
+                                <span class="insight-tag" id="insight-tag-2">WARNING</span>
+                            </div>
+                            <div class="insight-body" id="insight-body-2">
+                                Calculating...
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Card 3 -->
+                        <div class="insight-card" id="insight-card-3">
+                            <div class="insight-card-header">
+                                <span class="insight-title">Geographic Gap</span>
+                                <span class="insight-tag" id="insight-tag-3">INFO</span>
+                            </div>
+                            <div class="insight-body" id="insight-body-3">
+                                Calculating...
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Card 4 -->
+                        <div class="insight-card" id="insight-card-4">
+                            <div class="insight-card-header">
+                                <span class="insight-title">Product Drag Warning</span>
+                                <span class="insight-tag" id="insight-tag-4">DANGER</span>
+                            </div>
+                            <div class="insight-body" id="insight-body-4">
+                                Calculating...
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Card 5 -->
+                        <div class="insight-card" id="insight-card-5">
+                            <div class="insight-card-header">
+                                <span class="insight-title">Segment Volume Mix</span>
+                                <span class="insight-tag" id="insight-tag-5">SUCCESS</span>
+                            </div>
+                            <div class="insight-body" id="insight-body-5">
+                                Calculating...
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Embedded Data Generator & JavaScript Application Code -->
+    <script>
+        // -------------------------------------------------------------
+        // DATASET GENERATOR & STORAGE
+        // Creates a highly realistic dataset matching standard Superstore patterns
+        // -------------------------------------------------------------
+        let rawDataset = [];
+
+        function generateDataset() {
+            const years = [2018, 2019, 2020, 2021];
+            const regions = ['East', 'West', 'Central', 'South'];
+            const segments = ['Consumer', 'Corporate', 'Home Office'];
+            const shipModes = ['Standard Class', 'Second Class', 'First Class', 'Same Day'];
+            
+            const stateMap = {
+                'East': ['New York', 'Pennsylvania', 'Massachusetts', 'New Jersey'],
+                'West': ['California', 'Washington', 'Oregon', 'Arizona'],
+                'Central': ['Texas', 'Illinois', 'Ohio', 'Michigan'],
+                'South': ['Florida', 'North Carolina', 'Georgia', 'Virginia']
+            };
+
+            const subCatMap = {
+                'Furniture': ['Bookcases', 'Chairs', 'Furnishings', 'Tables'],
+                'Office Supplies': ['Appliances', 'Art', 'Binders', 'Paper', 'Storage', 'Envelopes', 'Fasteners', 'Labels', 'Supplies'],
+                'Technology': ['Phones', 'Accessories', 'Copiers', 'Machines']
+            };
+
+            const transitDaysMap = {
+                'Standard Class': 5,
+                'Second Class': 3,
+                'First Class': 2,
+                'Same Day': 0
+            };
+
+            let idCounter = 1000;
+
+            years.forEach(year => {
+                const yearMultiplier = year === 2018 ? 1.0 : year === 2019 ? 1.15 : year === 2020 ? 1.28 : 1.45;
+
+                for (let month = 1; month <= 12; month++) {
+                    // Seasonal spike in Q4
+                    const seasonFactor = (month >= 10) ? 1.35 : (month === 6 || month === 7) ? 1.1 : 0.9;
+                    const baseRecords = Math.floor(25 * yearMultiplier * seasonFactor);
+
+                    for (let i = 0; i < baseRecords; i++) {
+                        idCounter++;
+                        const region = regions[Math.floor(Math.random() * regions.length)];
+                        const state = stateMap[region][Math.floor(Math.random() * stateMap[region].length)];
+                        const segment = segments[Math.floor(Math.random() * segments.length)];
+                        const shipMode = shipModes[Math.floor(Math.random() * shipModes.length)];
+
+                        const categoryKeys = Object.keys(subCatMap);
+                        const category = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
+                        const subCatList = subCatMap[category];
+                        const subCategory = subCatList[Math.floor(Math.random() * subCatList.length)];
+
+                        // Sales base
+                        let baseSales = Math.floor(Math.random() * 400) + 20;
+                        if (subCategory === 'Copiers' || subCategory === 'Machines' || subCategory === 'Chairs') {
+                            baseSales += Math.floor(Math.random() * 800) + 200;
+                        }
+
+                        const quantity = Math.floor(Math.random() * 8) + 1;
+                        
+                        // Discount distribution: 0%, 10%, 20%, 30%, 40%, 50%, 70%
+                        const discountBins = [0, 0, 0, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.7];
+                        let discount = discountBins[Math.floor(Math.random() * discountBins.length)];
+                        
+                        // Tables and Bookcases have higher average discounts
+                        if (subCategory === 'Tables' || subCategory === 'Bookcases' || subCategory === 'Supplies') {
+                            if (Math.random() > 0.4) discount = Math.max(discount, 0.4);
+                        }
+
+                        const grossSales = baseSales * quantity;
+                        const netSales = grossSales * (1 - discount);
+
+                        // Profit calculation logic: high discounts destroy profit margins rapidly
+                        let marginBase = 0.25; // 25% standard margin
+                        if (subCategory === 'Copiers' || subCategory === 'Paper' || subCategory === 'Accessories') marginBase = 0.42;
+                        if (subCategory === 'Tables') marginBase = 0.02; // chronically low margin
+                        if (subCategory === 'Bookcases') marginBase = 0.08;
+                        if (subCategory === 'Supplies') marginBase = -0.05;
+
+                        // Margin penalty for discounts
+                        let effectiveMargin = marginBase - (discount * 1.1);
+                        let profit = netSales * effectiveMargin;
+
+                        const customerId = 'CUST-' + (1000 + Math.floor(Math.random() * 250));
+
+                        rawDataset.push({
+                            id: idCounter,
+                            year: year,
+                            month: month,
+                            dateStr: `${year}-${month < 10 ? '0' + month : month}`,
+                            region: region,
+                            state: state,
+                            segment: segment,
+                            category: category,
+                            subCategory: subCategory,
+                            shipMode: shipMode,
+                            transitDays: transitDaysMap[shipMode],
+                            sales: netSales,
+                            profit: profit,
+                            quantity: quantity,
+                            discount: discount,
+                            customerId: customerId
+                        });
+                    }
+                }
+            });
+        }
+
+        // Initialize dataset
+        generateDataset();
+
+        // Global Chart Instance Registry for easy cleanup/updating
+        let charts = {};
+
+        // Utility Helpers
+        function formatCurrency(value) {
+            if (Math.abs(value) >= 1e6) {
+                return '$' + (value / 1e6).toFixed(2) + 'M';
+            } else if (Math.abs(value) >= 1e3) {
+                return '$' + (value / 1e3).toFixed(1) + 'K';
+            } else {
+                return '$' + value.toFixed(0);
+            }
+        }
+
+        function formatPercent(value) {
+            return value.toFixed(1) + '%';
+        }
+
+        // -------------------------------------------------------------
+        // FILTER ENGINE
+        // -------------------------------------------------------------
+        function getFilteredData() {
+            const yr = document.getElementById('filter-year').value;
+            const reg = document.getElementById('filter-region').value;
+            const seg = document.getElementById('filter-segment').value;
+            const cat = document.getElementById('filter-category').value;
+            const ship = document.getElementById('filter-shipmode').value;
+
+            return rawDataset.filter(d => {
+                if (yr !== 'All' && d.year.toString() !== yr) return false;
+                if (reg !== 'All' && d.region !== reg) return false;
+                if (seg !== 'All' && d.segment !== seg) return false;
+                if (cat !== 'All' && d.category !== cat) return false;
+                if (ship !== 'All' && d.shipMode !== ship) return false;
+                return true;
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-year').value = 'All';
+            document.getElementById('filter-region').value = 'All';
+            document.getElementById('filter-segment').value = 'All';
+            document.getElementById('filter-category').value = 'All';
+            document.getElementById('filter-shipmode').value = 'All';
+            handleFilterChange();
+        }
+
+        function handleFilterChange() {
+            const data = getFilteredData();
+            updateKPIs(data);
+            updateCharts(data);
+            updateInsights(data);
+        }
+
+        // -------------------------------------------------------------
+        // SECTION 1: KPI UPDATES
+        // -------------------------------------------------------------
+        function updateKPIs(data) {
+            const totalRevenue = data.reduce((acc, d) => acc + d.sales, 0);
+            const totalProfit = data.reduce((acc, d) => acc + d.profit, 0);
+            const margin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+            const totalOrders = data.length;
+            const uniqueCustomers = new Set(data.map(d => d.customerId)).size;
+
+            document.getElementById('kpi-revenue').innerText = formatCurrency(totalRevenue);
+            document.getElementById('kpi-profit').innerText = formatCurrency(totalProfit);
+            document.getElementById('kpi-margin').innerText = formatPercent(margin);
+            document.getElementById('kpi-orders').innerText = totalOrders.toLocaleString();
+            document.getElementById('kpi-customers').innerText = uniqueCustomers.toLocaleString();
+
+            // Margin Badge Color Logic
+            const badge = document.getElementById('kpi-margin-badge');
+            if (margin < 5) {
+                badge.innerText = 'WARNING: <5%';
+                badge.style.backgroundColor = 'var(--red-bg)';
+                badge.style.color = 'var(--red-warning)';
+            } else if (margin <= 12) {
+                badge.innerText = 'WATCH: 5-12%';
+                badge.style.backgroundColor = 'var(--amber-bg)';
+                badge.style.color = 'var(--amber-watch)';
+            } else {
+                badge.innerText = 'HEALTHY: >12%';
+                badge.style.backgroundColor = 'var(--teal-bg)';
+                badge.style.color = 'var(--teal-success)';
+            }
+        }
+
+        // -------------------------------------------------------------
+        // SECTION 3: VISUAL ANALYTICS ENGINE (CHARTS)
+        // -------------------------------------------------------------
+        function updateCharts(data) {
+            chartMonthlyTrend(data);
+            chartCategoryShare(data);
+            chartSubcatMargin(data);
+            chartRegionalPerf(data);
+            chartSegmentSplit(data);
+            chartBubbleMatrix(data);
+            chartDiscountImpact(data);
+            chartTopStates(data);
+            chartShipMode(data);
+            chartYoYGrowth(data);
+            chartOrderHeatmap(data);
+        }
+
+        // Chart 1: Monthly Sales & Profit Trend
+        function chartMonthlyTrend(data) {
+            const monthlyMap = {};
+            data.forEach(d => {
+                if (!monthlyMap[d.dateStr]) monthlyMap[d.dateStr] = { sales: 0, profit: 0 };
+                monthlyMap[d.dateStr].sales += d.sales;
+                monthlyMap[d.dateStr].profit += d.profit;
+            });
+
+            const labels = Object.keys(monthlyMap).sort();
+            const salesData = labels.map(l => monthlyMap[l].sales);
+            const profitData = labels.map(l => monthlyMap[l].profit);
+
+            if (charts.monthlyTrend) charts.monthlyTrend.destroy();
+            const ctx = document.getElementById('chart-monthly-trend').getContext('2d');
+            charts.monthlyTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Sales ($)',
+                            data: salesData,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                            fill: true,
+                            yAxisID: 'ySales',
+                            tension: 0.3,
+                            borderWidth: 2.5
+                        },
+                        {
+                            label: 'Profit ($)',
+                            data: profitData,
+                            borderColor: '#0d9488',
+                            backgroundColor: 'transparent',
+                            borderDash: [4, 4],
+                            yAxisID: 'yProfit',
+                            tension: 0.3,
+                            borderWidth: 2.5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                        ySales: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Sales ($)', font: { size: 11, weight: 'bold' } },
+                            ticks: { callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }
+                        },
+                        yProfit: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: 'Profit ($)', font: { size: 11, weight: 'bold' } },
+                            grid: { drawOnChartArea: false },
+                            ticks: { callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.dataset.label + ': ' + formatCurrency(ctx.raw)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 2: Revenue Share by Category
+        function chartCategoryShare(data) {
+            const catMap = {};
+            data.forEach(d => {
+                catMap[d.category] = (catMap[d.category] || 0) + d.sales;
+            });
+
+            const labels = Object.keys(catMap);
+            const values = Object.values(catMap);
+
+            if (charts.categoryShare) charts.categoryShare.destroy();
+            const ctx = document.getElementById('chart-category-share').getContext('2d');
+            charts.categoryShare = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#1a2744', '#0d9488', '#2563eb']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    const total = ctx.dataset.data.reduce((a,b)=>a+b, 0);
+                                    const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) + '%' : '0%';
+                                    return `${ctx.label}: ${formatCurrency(ctx.raw)} (${pct})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 3: Profit Margin % by Sub-Category
+        function chartSubcatMargin(data) {
+            const subMap = {};
+            data.forEach(d => {
+                if (!subMap[d.subCategory]) subMap[d.subCategory] = { sales: 0, profit: 0 };
+                subMap[d.subCategory].sales += d.sales;
+                subMap[d.subCategory].profit += d.profit;
+            });
+
+            const items = Object.keys(subMap).map(k => {
+                const margin = subMap[k].sales > 0 ? (subMap[k].profit / subMap[k].sales) * 100 : 0;
+                return { subCat: k, margin: margin, profit: subMap[k].profit, sales: subMap[k].sales };
+            }).sort((a,b) => b.margin - a.margin);
+
+            const labels = items.map(i => i.subCat);
+            const margins = items.map(i => i.margin);
+            const bgColors = margins.map(m => m > 15 ? '#0d9488' : m >= 0 ? '#d97706' : '#dc2626');
+
+            if (charts.subcatMargin) charts.subcatMargin.destroy();
+            const ctx = document.getElementById('chart-subcat-margin').getContext('2d');
+            charts.subcatMargin = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Margin %',
+                        data: margins,
+                        backgroundColor: bgColors,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `Margin: ${formatPercent(ctx.raw)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { callback: v => v + '%' } },
+                        y: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // Chart 4: Regional Performance
+        function chartRegionalPerf(data) {
+            const regMap = {};
+            ['East', 'West', 'Central', 'South'].forEach(r => regMap[r] = { sales: 0, profit: 0 });
+
+            data.forEach(d => {
+                if (regMap[d.region]) {
+                    regMap[d.region].sales += d.sales;
+                    regMap[d.region].profit += d.profit;
+                }
+            });
+
+            const labels = Object.keys(regMap);
+            const sales = labels.map(l => regMap[l].sales);
+            const margins = labels.map(l => regMap[l].sales > 0 ? (regMap[l].profit / regMap[l].sales) * 100 : 0);
+
+            if (charts.regionalPerf) charts.regionalPerf.destroy();
+            const ctx = document.getElementById('chart-regional-perf').getContext('2d');
+            charts.regionalPerf = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Sales ($)',
+                            data: sales,
+                            backgroundColor: '#1a2744',
+                            borderRadius: 4,
+                            yAxisID: 'ySales'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Margin %',
+                            data: margins,
+                            borderColor: '#0d9488',
+                            backgroundColor: '#0d9488',
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            yAxisID: 'yMargin'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        ySales: { position: 'left', ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } },
+                        yMargin: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v.toFixed(0) + '%' } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.dataset.type === 'line' ? `Margin: ${formatPercent(ctx.raw)}` : `Sales: ${formatCurrency(ctx.raw)}`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 5: Customer Segment Split by Year
+        function chartSegmentSplit(data) {
+            const yearSegMap = {};
+            const years = [2018, 2019, 2020, 2021];
+            const segs = ['Consumer', 'Corporate', 'Home Office'];
+
+            years.forEach(y => {
+                yearSegMap[y] = { 'Consumer': 0, 'Corporate': 0, 'Home Office': 0 };
+            });
+
+            data.forEach(d => {
+                if (yearSegMap[d.year] && yearSegMap[d.year][d.segment] !== undefined) {
+                    yearSegMap[d.year][d.segment] += d.sales;
+                }
+            });
+
+            const datasets = [
+                { label: 'Consumer', data: years.map(y => yearSegMap[y]['Consumer']), backgroundColor: '#1a2744' },
+                { label: 'Corporate', data: years.map(y => yearSegMap[y]['Corporate']), backgroundColor: '#2563eb' },
+                { label: 'Home Office', data: years.map(y => yearSegMap[y]['Home Office']), backgroundColor: '#0d9488' }
+            ];
+
+            if (charts.segmentSplit) charts.segmentSplit.destroy();
+            const ctx = document.getElementById('chart-segment-split').getContext('2d');
+            charts.segmentSplit = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: years, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: { label: ctx => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 6: Sales vs Profit Matrix (Bubble Chart)
+        function chartBubbleMatrix(data) {
+            const subMap = {};
+            data.forEach(d => {
+                if (!subMap[d.subCategory]) {
+                    subMap[d.subCategory] = { sales: 0, profit: 0, qty: 0, category: d.category };
+                }
+                subMap[d.subCategory].sales += d.sales;
+                subMap[d.subCategory].profit += d.profit;
+                subMap[d.subCategory].qty += d.quantity;
+            });
+
+            const catColors = { 'Furniture': '#1a2744', 'Office Supplies': '#0d9488', 'Technology': '#2563eb' };
+
+            const bubbleData = Object.keys(subMap).map(sub => {
+                const item = subMap[sub];
+                return {
+                    x: Math.round(item.sales),
+                    y: Math.round(item.profit),
+                    r: Math.min(Math.max(Math.sqrt(item.qty) * 0.8, 6), 25), // dynamic bubble scaling
+                    subCategory: sub,
+                    category: item.category,
+                    qty: item.qty
+                };
+            });
+
+            if (charts.bubbleMatrix) charts.bubbleMatrix.destroy();
+            const ctx = document.getElementById('chart-bubble-matrix').getContext('2d');
+            charts.bubbleMatrix = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: Object.keys(catColors).map(cat => ({
+                        label: cat,
+                        data: bubbleData.filter(b => b.category === cat),
+                        backgroundColor: catColors[cat] + 'bb',
+                        borderColor: catColors[cat]
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Total Sales ($)', font: { weight: 'bold' } }, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } },
+                        y: { title: { display: true, text: 'Total Profit ($)', font: { weight: 'bold' } }, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    const raw = ctx.raw;
+                                    return `${raw.subCategory}: Sales ${formatCurrency(raw.x)}, Profit ${formatCurrency(raw.y)}, Qty: ${raw.qty}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 7: Discount Impact Curve
+        function chartDiscountImpact(data) {
+            const bands = ['0%', '10%', '15%', '20%', '30%', '40%', '50%+'];
+            const bandStats = {
+                '0%': { profit: 0, count: 0 },
+                '10%': { profit: 0, count: 0 },
+                '15%': { profit: 0, count: 0 },
+                '20%': { profit: 0, count: 0 },
+                '30%': { profit: 0, count: 0 },
+                '40%': { profit: 0, count: 0 },
+                '50%+': { profit: 0, count: 0 }
+            };
+
+            data.forEach(d => {
+                let key = '0%';
+                if (d.discount >= 0.5) key = '50%+';
+                else if (d.discount >= 0.4) key = '40%';
+                else if (d.discount >= 0.3) key = '30%';
+                else if (d.discount >= 0.2) key = '20%';
+                else if (d.discount >= 0.15) key = '15%';
+                else if (d.discount >= 0.1) key = '10%';
+
+                bandStats[key].profit += d.profit;
+                bandStats[key].count += 1;
+            });
+
+            const avgProfits = bands.map(b => bandStats[b].count > 0 ? (bandStats[b].profit / bandStats[b].count) : 0);
+
+            if (charts.discountImpact) charts.discountImpact.destroy();
+            const ctx = document.getElementById('chart-discount-impact').getContext('2d');
+            charts.discountImpact = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: bands,
+                    datasets: [{
+                        label: 'Avg Profit per Order ($)',
+                        data: avgProfits,
+                        borderColor: '#dc2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                        fill: true,
+                        tension: 0.2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Discount Band', font: { weight: 'bold' } } },
+                        y: { title: { display: true, text: 'Avg Profit / Order ($)', font: { weight: 'bold' } } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `Avg Profit: $${ctx.raw.toFixed(2)}`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 8: Top 10 States by Revenue
+        function chartTopStates(data) {
+            const stateMap = {};
+            data.forEach(d => {
+                if (!stateMap[d.state]) stateMap[d.state] = { sales: 0, profit: 0 };
+                stateMap[d.state].sales += d.sales;
+                stateMap[d.state].profit += d.profit;
+            });
+
+            const sortedStates = Object.keys(stateMap)
+                .map(s => ({ state: s, sales: stateMap[s].sales, profit: stateMap[s].profit }))
+                .sort((a,b) => b.sales - a.sales)
+                .slice(0, 10);
+
+            const labels = sortedStates.map(s => s.state);
+            const sales = sortedStates.map(s => s.sales);
+
+            if (charts.topStates) charts.topStates.destroy();
+            const ctx = document.getElementById('chart-top-states').getContext('2d');
+            charts.topStates = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: sales,
+                        backgroundColor: '#1a2744',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    const st = sortedStates[ctx.dataIndex];
+                                    const margin = st.sales > 0 ? (st.profit / st.sales) * 100 : 0;
+                                    return `Sales: ${formatCurrency(st.sales)} | Margin: ${formatPercent(margin)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } }
+                    }
+                }
+            });
+        }
+
+        // Chart 9: Shipping Mode Impact & Embedded Table
+        function chartShipMode(data) {
+            const shipMap = {};
+            ['Standard Class', 'Second Class', 'First Class', 'Same Day'].forEach(m => {
+                shipMap[m] = { sales: 0, profit: 0, count: 0, transitDays: m === 'Standard Class' ? 5 : m === 'Second Class' ? 3 : m === 'First Class' ? 2 : 0 };
+            });
+
+            data.forEach(d => {
+                if (shipMap[d.shipMode]) {
+                    shipMap[d.shipMode].sales += d.sales;
+                    shipMap[d.shipMode].profit += d.profit;
+                    shipMap[d.shipMode].count += 1;
+                }
+            });
+
+            const labels = Object.keys(shipMap);
+            const counts = labels.map(l => shipMap[l].count);
+
+            if (charts.shipMode) charts.shipMode.destroy();
+            const ctx = document.getElementById('chart-ship-mode').getContext('2d');
+            charts.shipMode = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: ['#1a2744', '#2563eb', '#0d9488', '#d97706']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // Update embedded summary table
+            const tbody = document.querySelector('#table-ship-metrics tbody');
+            tbody.innerHTML = '';
+            labels.forEach(m => {
+                const item = shipMap[m];
+                const avgProfit = item.count > 0 ? (item.profit / item.count) : 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${m}</strong></td>
+                    <td>${item.transitDays} Days</td>
+                    <td style="color: ${avgProfit >= 0 ? 'var(--teal-success)' : 'var(--red-warning)'}; font-weight:700;">$${avgProfit.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Chart 10: Year-over-Year (YoY) Financial Growth
+        function chartYoYGrowth(data) {
+            const yearMap = {};
+            [2018, 2019, 2020, 2021].forEach(y => yearMap[y] = { sales: 0, profit: 0 });
+
+            data.forEach(d => {
+                if (yearMap[d.year]) {
+                    yearMap[d.year].sales += d.sales;
+                    yearMap[d.year].profit += d.profit;
+                }
+            });
+
+            const years = Object.keys(yearMap);
+            const sales = years.map(y => yearMap[y].sales);
+            const profits = years.map(y => yearMap[y].profit);
+
+            if (charts.yoyGrowth) charts.yoyGrowth.destroy();
+            const ctx = document.getElementById('chart-yoy-growth').getContext('2d');
+            charts.yoyGrowth = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        { label: 'Sales ($)', data: sales, backgroundColor: '#1a2744', borderRadius: 4 },
+                        { label: 'Profit ($)', data: profits, backgroundColor: '#0d9488', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: { label: ctx => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 11: Monthly Order Volume Heatmap
+        function chartOrderHeatmap(data) {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthCounts = new Array(12).fill(0);
+
+            data.forEach(d => {
+                if (d.month >= 1 && d.month <= 12) {
+                    monthCounts[d.month - 1] += 1;
+                }
+            });
+
+            const maxVal = Math.max(...monthCounts, 1);
+            const bgColors = monthCounts.map(c => {
+                const ratio = c / maxVal;
+                return `rgba(13, 148, 136, ${Math.max(ratio, 0.15)})`;
+            });
+
+            if (charts.orderHeatmap) charts.orderHeatmap.destroy();
+            const ctx = document.getElementById('chart-order-heatmap').getContext('2d');
+            charts.orderHeatmap = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: monthNames,
+                    datasets: [{
+                        label: 'Orders',
+                        data: monthCounts,
+                        backgroundColor: bgColors,
+                        borderColor: '#0d9488',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: { label: ctx => `Orders: ${ctx.raw}` }
+                        }
+                    }
+                }
+            });
+        }
+
+        // -------------------------------------------------------------
+        // SECTION 4: AUTOMATED EXECUTIVE INSIGHTS ENGINE
+        // Dynamic, contextual text updates based on filtered data
+        // -------------------------------------------------------------
+        function updateInsights(data) {
+            if (!data || data.length === 0) {
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`insight-body-${i}`).innerHTML = 'No data available for current selection.';
+                }
+                return;
+            }
+
+            // Insight 1: Category Margin Leader
+            const catMap = {};
+            data.forEach(d => {
+                if (!catMap[d.category]) catMap[d.category] = { sales: 0, profit: 0 };
+                catMap[d.category].sales += d.sales;
+                catMap[d.category].profit += d.profit;
+            });
+            let topCat = '', topMargin = -999, lowCat = '', lowMargin = 999;
+            Object.keys(catMap).forEach(c => {
+                const m = catMap[c].sales > 0 ? (catMap[c].profit / catMap[c].sales) * 100 : 0;
+                if (m > topMargin) { topMargin = m; topCat = c; }
+                if (m < lowMargin) { lowMargin = m; lowCat = c; }
+            });
+            document.getElementById('insight-body-1').innerHTML = 
+                `<span class="insight-highlight">${topCat}</span> delivers highest net margin at <span class="insight-highlight">${formatPercent(topMargin)}</span>, whereas <span class="insight-highlight">${lowCat}</span> trails at ${formatPercent(lowMargin)}.`;
+
+            // Insight 2: Discount Erosion Warning
+            const highDiscOrders = data.filter(d => d.discount >= 0.2).length;
+            const highDiscPct = (highDiscOrders / data.length) * 100;
+            const card2Tag = document.getElementById('insight-tag-2');
+            const card2Card = document.getElementById('insight-card-2');
+            if (highDiscPct > 35) {
+                card2Tag.innerText = 'DANGER'; card2Tag.className = 'insight-tag danger';
+                card2Card.className = 'insight-card danger';
+            } else {
+                card2Tag.innerText = 'WARNING'; card2Tag.className = 'insight-tag warning';
+                card2Card.className = 'insight-card warning';
+            }
+            document.getElementById('insight-body-2').innerHTML = 
+                `<span class="insight-highlight">${formatPercent(highDiscPct)}</span> of orders carry discounts ≥ 20%, breaching the profit erosion boundary.`;
+
+            // Insight 3: Geographic Revenue vs Margin Gap
+            const regMap = {};
+            data.forEach(d => {
+                if (!regMap[d.region]) regMap[d.region] = { sales: 0, profit: 0 };
+                regMap[d.region].sales += d.sales;
+                regMap[d.region].profit += d.profit;
+            });
+            let maxRevReg = '', maxRev = -1, minMargReg = '', minMarg = 999;
+            Object.keys(regMap).forEach(r => {
+                if (regMap[r].sales > maxRev) { maxRev = regMap[r].sales; maxRevReg = r; }
+                const m = regMap[r].sales > 0 ? (regMap[r].profit / regMap[r].sales) * 100 : 0;
+                if (m < minMarg) { minMarg = m; minMargReg = r; }
+            });
+            document.getElementById('insight-body-3').innerHTML = 
+                `<span class="insight-highlight">${maxRevReg}</span> leads gross revenue (${formatCurrency(maxRev)}), but <span class="insight-highlight">${minMargReg}</span> exhibits weakest margin quality (${formatPercent(minMarg)}).`;
+
+            // Insight 4: Product Drag Warning
+            const subMap = {};
+            data.forEach(d => {
+                if (!subMap[d.subCategory]) subMap[d.subCategory] = 0;
+                subMap[d.subCategory] += d.profit;
+            });
+            let worstSub = '', worstProfit = 99999999;
+            Object.keys(subMap).forEach(s => {
+                if (subMap[s] < worstProfit) { worstProfit = subMap[s]; worstSub = s; }
+            });
+            document.getElementById('insight-body-4').innerHTML = 
+                `<span class="insight-highlight">${worstSub}</span> generates the largest profitability drain with net bottom-line impact of <span class="insight-highlight">${formatCurrency(worstProfit)}</span>.`;
+
+            // Insight 5: Segment Volume Insight
+            const segMap = {};
+            let totalSales = 0;
+            data.forEach(d => {
+                segMap[d.segment] = (segMap[d.segment] || 0) + d.sales;
+                totalSales += d.sales;
+            });
+            let topSeg = '', topSegSales = 0;
+            Object.keys(segMap).forEach(s => {
+                if (segMap[s] > topSegSales) { topSegSales = segMap[s]; topSeg = s; }
+            });
+            const topSegShare = totalSales > 0 ? (topSegSales / totalSales) * 100 : 0;
+            document.getElementById('insight-body-5').innerHTML = 
+                `<span class="insight-highlight">${topSeg}</span> dominates business volume, generating <span class="insight-highlight">${formatPercent(topSegShare)}</span> of total filtered revenue (${formatCurrency(topSegSales)}).`;
+        }
+
+        // -------------------------------------------------------------
+        // APPLICATION INITIALIZATION
+        // -------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            handleFilterChange();
+        });
+    </script>
+</body>
+</html>
